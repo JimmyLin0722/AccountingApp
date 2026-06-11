@@ -173,6 +173,30 @@ SQLite 外鍵約束須在每次連線時明確啟用（`PRAGMA foreign_keys = ON
 - 主背景：`#F5F5F5`，卡片：白色，圓角 12px
 - 詳細排版參考 `docs/style_0.jpg`；色彩參考 `docs/style_1.jpg`
 
+## Git 工作流程
+
+**每次開始修改前**，必須先同步最新的 main：
+
+```bash
+git checkout main
+git pull origin main
+git checkout claude
+git rebase main
+```
+
+**修改完成後**，推上 claude 分支：
+
+```bash
+git push origin claude
+```
+
+推送後提示使用者至 GitHub 建立 PR（`main ← claude`）：
+- PR 網址：https://github.com/JimmyLin0722/AccountingApp/compare/main...claude
+
+> **規則**：所有程式碼修改一律提交至 `claude` 分支，絕不直接 commit 到 `main`。
+
+---
+
 ## 暫緩功能（Phase 2）
 
 - **H — CSV 匯出**：將所有交易匯出為 CSV，儲存至裝置或分享至 Google Drive / iCloud。
