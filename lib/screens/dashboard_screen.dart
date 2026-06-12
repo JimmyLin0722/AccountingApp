@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -12,9 +13,9 @@ class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
   static const _chartColors = [
-    Color(0xFFF4A438), Color(0xFF5BC8C0), Color(0xFFF06060),
-    Color(0xFF4A90D9), Color(0xFFA29BFE), Color(0xFF55EFC4),
-    Color(0xFFFFD93D), Color(0xFFFF6B6B),
+    Color(0xFFFF4772), Color(0xFF00F5D4), Color(0xFF7000FF),
+    Color(0xFF00C4FF), Color(0xFFFFD700), Color(0xFFFF6B6B),
+    Color(0xFF4DFFB4), Color(0xFFFF9F43),
   ];
 
   @override
@@ -27,34 +28,37 @@ class DashboardScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.background,
         elevation: 0,
-        leading: const Icon(Icons.menu, color: AppColors.textDark),
+        leading: const Icon(Icons.menu, color: AppColors.textGrey),
         title: GestureDetector(
           onTap: () => _showMonthPicker(context, provider, viewMonth),
           child: Row(mainAxisSize: MainAxisSize.min, children: [
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
               decoration: BoxDecoration(
-                color: AppColors.textDark,
+                border: Border.all(color: AppColors.accent.withValues(alpha: 0.6)),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: const Text('全部',
-                  style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                  style: TextStyle(color: AppColors.accent, fontSize: 13, fontWeight: FontWeight.w600)),
             ),
             const SizedBox(width: 8),
             Text(monthLabel,
-                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600)),
-            const Icon(Icons.arrow_drop_down, size: 20),
+                style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: AppColors.textPrimary)),
+            const Icon(Icons.arrow_drop_down, size: 20, color: AppColors.textGrey),
           ]),
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.account_balance_wallet_outlined),
+            icon: const Icon(Icons.account_balance_wallet_outlined, color: AppColors.textGrey),
             tooltip: '本月設定',
             onPressed: () => _showMonthlySettingsDialog(context, provider),
           ),
-          IconButton(icon: const Icon(Icons.notifications_none), onPressed: () {}),
+          IconButton(
+            icon: const Icon(Icons.notifications_none, color: AppColors.textGrey),
+            onPressed: () {},
+          ),
         ],
       ),
       body: GestureDetector(
@@ -73,19 +77,21 @@ class DashboardScreen extends StatelessWidget {
               if (provider.budgetStatus == 2)
                 _BudgetBanner(
                   message: '⚠️ 本月支出已達預算 80%，請注意消費',
-                  color: const Color(0xFFFFF3CD),
-                  textColor: const Color(0xFF856404),
+                  bgColor: const Color(0xFF2A1F00),
+                  textColor: const Color(0xFFFFB800),
+                  accentColor: const Color(0xFFFFB800),
                 ),
               if (provider.budgetStatus == 3)
                 _BudgetBanner(
                   message: '🚨 本月支出已超出預算！',
-                  color: const Color(0xFFFDE2E2),
-                  textColor: const Color(0xFFB00020),
+                  bgColor: const Color(0xFF2A0011),
+                  textColor: AppColors.expense,
+                  accentColor: AppColors.expense,
                 ),
               // 統計橫幅
               Container(
-                color: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+                color: AppColors.surface,
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
@@ -99,10 +105,11 @@ class DashboardScreen extends StatelessWidget {
               ),
               // 甜甜圈圖
               Container(
-                color: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
+                color: AppColors.background,
+                padding: const EdgeInsets.symmetric(vertical: 20),
                 child: provider.monthlySummary.isEmpty
-                    ? const SizedBox(height: 200,
+                    ? const SizedBox(
+                        height: 200,
                         child: Center(child: Text('本月尚無支出', style: TextStyle(color: AppColors.textGrey))))
                     : _DonutChart(
                         summary: provider.monthlySummary,
@@ -111,7 +118,7 @@ class DashboardScreen extends StatelessWidget {
                         provider: provider,
                       ),
               ),
-              const SizedBox(height: 8),
+              const SizedBox(height: 4),
               // 交易清單
               if (grouped.isEmpty)
                 const Padding(
@@ -126,15 +133,29 @@ class DashboardScreen extends StatelessWidget {
           ),
         ),
       ),
-      floatingActionButton: FloatingActionButton(
-        backgroundColor: AppColors.okButton,
-        foregroundColor: Colors.white,
-        onPressed: () {
-          context.read<TransactionProvider>().resetInput();
-          Navigator.push(context,
-              MaterialPageRoute(builder: (_) => const AddTransactionScreen()));
-        },
-        child: const Icon(Icons.add, size: 28),
+      floatingActionButton: Container(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(14),
+          boxShadow: [
+            BoxShadow(
+              color: AppColors.accent.withValues(alpha: 0.5),
+              blurRadius: 24,
+              spreadRadius: 2,
+            ),
+          ],
+        ),
+        child: FloatingActionButton(
+          backgroundColor: AppColors.accent,
+          foregroundColor: Colors.white,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+          elevation: 0,
+          onPressed: () {
+            context.read<TransactionProvider>().resetInput();
+            Navigator.push(context,
+                MaterialPageRoute(builder: (_) => const AddTransactionScreen()));
+          },
+          child: const Icon(Icons.add, size: 28),
+        ),
       ),
     );
   }
@@ -150,6 +171,7 @@ class DashboardScreen extends StatelessWidget {
   void _showMonthPicker(BuildContext context, TransactionProvider provider, DateTime current) {
     showModalBottomSheet(
       context: context,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
       builder: (_) => _MonthPickerSheet(current: current, provider: provider),
@@ -169,49 +191,126 @@ class DashboardScreen extends StatelessWidget {
     );
     showDialog(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('本月設定'),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            TextField(
-              controller: incomeCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: '本月固定收入（NT\$）',
-                prefixIcon: Icon(Icons.trending_up),
+      barrierColor: Colors.black.withValues(alpha: 0.7),
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: const EdgeInsets.symmetric(horizontal: 24),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Container(
+              decoration: BoxDecoration(
+                color: AppColors.surface.withValues(alpha: 0.92),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(color: Colors.white.withValues(alpha: 0.08)),
+              ),
+              padding: const EdgeInsets.all(24),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('本月設定',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                  const SizedBox(height: 24),
+                  _GlassTextField(
+                    controller: incomeCtrl,
+                    label: '本月固定收入（NT\$）',
+                    icon: Icons.trending_up,
+                    accentColor: AppColors.income,
+                  ),
+                  const SizedBox(height: 20),
+                  _GlassTextField(
+                    controller: budgetCtrl,
+                    label: '本月支出預算（NT\$）',
+                    icon: Icons.account_balance_wallet_outlined,
+                    accentColor: AppColors.expense,
+                  ),
+                  const SizedBox(height: 28),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: const Text('取消', style: TextStyle(color: AppColors.textGrey)),
+                      ),
+                      const SizedBox(width: 12),
+                      GestureDetector(
+                        onTap: () async {
+                          final income = int.tryParse(incomeCtrl.text);
+                          final budget = int.tryParse(budgetCtrl.text);
+                          if (income != null && income >= 0) await provider.saveIncome(income);
+                          if (budget != null && budget >= 0) await provider.saveBudget(budget);
+                          if (ctx.mounted) Navigator.pop(ctx);
+                        },
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 12),
+                          decoration: BoxDecoration(
+                            color: AppColors.accent,
+                            borderRadius: BorderRadius.circular(10),
+                            boxShadow: [
+                              BoxShadow(color: AppColors.accent.withValues(alpha: 0.4), blurRadius: 12),
+                            ],
+                          ),
+                          child: const Text('儲存',
+                              style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
-            const SizedBox(height: 12),
-            TextField(
-              controller: budgetCtrl,
-              keyboardType: TextInputType.number,
-              decoration: const InputDecoration(
-                labelText: '本月支出預算（NT\$）',
-                prefixIcon: Icon(Icons.account_balance_wallet_outlined),
-              ),
-            ),
-          ],
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            onPressed: () async {
-              final income = int.tryParse(incomeCtrl.text);
-              final budget = int.tryParse(budgetCtrl.text);
-              if (income != null && income >= 0) {
-                await provider.saveIncome(income);
-              }
-              if (budget != null && budget >= 0) {
-                await provider.saveBudget(budget);
-              }
-              if (ctx.mounted) Navigator.pop(ctx);
-            },
-            child: const Text('儲存', style: TextStyle(color: Colors.white)),
           ),
-        ],
+        ),
       ),
+    );
+  }
+}
+
+// ── 玻璃擬態輸入欄位 ──────────────────────────────────────────
+class _GlassTextField extends StatelessWidget {
+  final TextEditingController controller;
+  final String label;
+  final IconData icon;
+  final Color accentColor;
+  const _GlassTextField({
+    required this.controller, required this.label,
+    required this.icon, required this.accentColor,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(children: [
+          Icon(icon, size: 13, color: accentColor),
+          const SizedBox(width: 6),
+          Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textGrey)),
+        ]),
+        const SizedBox(height: 8),
+        TextField(
+          controller: controller,
+          keyboardType: TextInputType.number,
+          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+          decoration: InputDecoration(
+            isDense: true,
+            contentPadding: const EdgeInsets.symmetric(vertical: 4),
+            hintText: '0',
+            hintStyle: TextStyle(
+              fontSize: 22, fontWeight: FontWeight.bold,
+              color: AppColors.textGrey.withValues(alpha: 0.4),
+            ),
+            enabledBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: accentColor.withValues(alpha: 0.3)),
+            ),
+            focusedBorder: UnderlineInputBorder(
+              borderSide: BorderSide(color: accentColor, width: 2),
+            ),
+          ),
+        ),
+      ],
     );
   }
 }
@@ -242,22 +341,31 @@ class _MonthPickerSheetState extends State<_MonthPickerSheet> {
     return Padding(
       padding: const EdgeInsets.all(20),
       child: Column(mainAxisSize: MainAxisSize.min, children: [
+        Container(
+          width: 36, height: 4,
+          margin: const EdgeInsets.only(bottom: 20),
+          decoration: BoxDecoration(
+            color: AppColors.surfaceHigh,
+            borderRadius: BorderRadius.circular(2),
+          ),
+        ),
         Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
           IconButton(
-            icon: const Icon(Icons.chevron_left),
+            icon: const Icon(Icons.chevron_left, color: AppColors.textGrey),
             onPressed: () => setState(() {
               if (_month == 1) { _year--; _month = 12; } else { _month--; }
             }),
           ),
-          Text('$_year 年', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+          Text('$_year 年',
+              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
           IconButton(
-            icon: const Icon(Icons.chevron_right),
+            icon: const Icon(Icons.chevron_right, color: AppColors.textGrey),
             onPressed: () => setState(() {
               if (_month == 12) { _year++; _month = 1; } else { _month++; }
             }),
           ),
         ]),
-        const SizedBox(height: 8),
+        const SizedBox(height: 12),
         GridView.count(
           shrinkWrap: true,
           crossAxisCount: 4,
@@ -275,12 +383,15 @@ class _MonthPickerSheetState extends State<_MonthPickerSheet> {
               child: Container(
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: isSelected ? AppColors.primary : Colors.grey.shade100,
+                  color: isSelected ? AppColors.accent : AppColors.surfaceHigh,
                   borderRadius: BorderRadius.circular(8),
+                  boxShadow: isSelected
+                      ? [BoxShadow(color: AppColors.accent.withValues(alpha: 0.4), blurRadius: 8)]
+                      : null,
                 ),
                 child: Text('$m月',
                     style: TextStyle(
-                      color: isSelected ? Colors.white : AppColors.textDark,
+                      color: isSelected ? Colors.white : AppColors.textGrey,
                       fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
                     )),
               ),
@@ -296,17 +407,24 @@ class _MonthPickerSheetState extends State<_MonthPickerSheet> {
 // ── 預算警示 Banner ───────────────────────────────────────────
 class _BudgetBanner extends StatelessWidget {
   final String message;
-  final Color color;
+  final Color bgColor;
   final Color textColor;
-  const _BudgetBanner({required this.message, required this.color, required this.textColor});
+  final Color accentColor;
+  const _BudgetBanner({
+    required this.message, required this.bgColor,
+    required this.textColor, required this.accentColor,
+  });
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      color: color,
+      color: bgColor,
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-      child: Text(message, style: TextStyle(color: textColor, fontSize: 13, fontWeight: FontWeight.w500)),
+      child: Row(children: [
+        Container(width: 3, height: 16, color: accentColor, margin: const EdgeInsets.only(right: 10)),
+        Text(message, style: TextStyle(color: textColor, fontSize: 13, fontWeight: FontWeight.w500)),
+      ]),
     );
   }
 }
@@ -325,20 +443,15 @@ class _SummaryTile extends StatelessWidget {
     return Column(
       crossAxisAlignment: alignRight ? CrossAxisAlignment.end : CrossAxisAlignment.start,
       children: [
-        Row(mainAxisSize: MainAxisSize.min, children: [
-          if (!alignRight) ...[
-            Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textGrey)),
-            const Icon(Icons.arrow_right, size: 16, color: AppColors.textGrey),
-          ] else ...[
-            const Icon(Icons.arrow_right, size: 16, color: AppColors.textGrey),
-            Text(label, style: const TextStyle(fontSize: 13, color: AppColors.textGrey)),
-          ],
-        ]),
-        Container(
-          decoration: BoxDecoration(border: Border(bottom: BorderSide(color: color, width: 2))),
-          child: Text('\$${fmt.format(amount)}',
-              style: const TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textDark)),
-        ),
+        Text(label, style: const TextStyle(fontSize: 12, color: AppColors.textGrey)),
+        const SizedBox(height: 4),
+        Text('\$${fmt.format(amount)}',
+            style: TextStyle(
+              fontSize: 22,
+              fontWeight: FontWeight.bold,
+              color: color,
+              shadows: [Shadow(color: color.withValues(alpha: 0.5), blurRadius: 10)],
+            )),
       ],
     );
   }
@@ -356,29 +469,49 @@ class _DonutChart extends StatelessWidget {
   Widget build(BuildContext context) {
     final fmt = NumberFormat('#,###');
     final isNeg = balance < 0;
+    final balanceColor = isNeg ? AppColors.expense : AppColors.income;
     final sections = summary.entries.toList().asMap().entries.map((e) {
       return PieChartSectionData(
         value: e.value.value.toDouble(),
         color: colors[e.key % colors.length],
         title: '',
-        radius: 52,
+        radius: 20,
       );
     }).toList();
 
     return SizedBox(
-      height: 220,
+      height: 240,
       child: Stack(alignment: Alignment.center, children: [
-        PieChart(PieChartData(sections: sections, centerSpaceRadius: 72, sectionsSpace: 2)),
+        Container(
+          width: 220,
+          height: 220,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            gradient: RadialGradient(
+              colors: [
+                balanceColor.withValues(alpha: 0.07),
+                Colors.transparent,
+              ],
+              radius: 0.7,
+            ),
+          ),
+        ),
+        PieChart(PieChartData(
+          sections: sections,
+          centerSpaceRadius: 84,
+          sectionsSpace: 3,
+          startDegreeOffset: -90,
+        )),
         Column(mainAxisSize: MainAxisSize.min, children: [
-          const Icon(Icons.account_balance_wallet_outlined, size: 20, color: AppColors.textGrey),
+          const Text('總結餘', style: TextStyle(fontSize: 12, color: AppColors.textGrey)),
           const SizedBox(height: 2),
-          const Text('總結餘', style: TextStyle(fontSize: 13, color: AppColors.textGrey)),
           Text(
             '${isNeg ? '-' : ''}\$${fmt.format(balance.abs())}',
             style: TextStyle(
-              fontSize: 20,
+              fontSize: 22,
               fontWeight: FontWeight.bold,
-              color: isNeg ? AppColors.okButton : const Color(0xFF2E7D32),
+              color: balanceColor,
+              shadows: [Shadow(color: balanceColor.withValues(alpha: 0.6), blurRadius: 16)],
             ),
           ),
         ]),
@@ -405,18 +538,22 @@ class _DateGroup extends StatelessWidget {
 
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: AppColors.surface,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.05)),
+      ),
       child: Column(children: [
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
           child: Row(mainAxisAlignment: MainAxisAlignment.spaceBetween, children: [
             Text('$displayDate $weekday',
-                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13, color: AppColors.textGrey)),
             Text('\$-${fmt.format(dayExpense)}',
-                style: const TextStyle(color: AppColors.expense, fontWeight: FontWeight.w600, fontSize: 14)),
+                style: const TextStyle(color: AppColors.expense, fontWeight: FontWeight.w600, fontSize: 13)),
           ]),
         ),
-        const Divider(height: 1),
+        Divider(height: 1, color: Colors.white.withValues(alpha: 0.05)),
         ...txns.map((t) => _TxnTile(t: t, provider: provider)),
       ]),
     );
@@ -438,29 +575,35 @@ class _TxnTile extends StatelessWidget {
 
     return ListTile(
       contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 2),
-      leading: CircleAvatar(
-        radius: 20,
-        backgroundColor: (isIncome ? AppColors.income : AppColors.primary).withValues(alpha: 0.15),
-        child: Icon(
-          iconFromName(cat?.iconName),
-          size: 18,
-          color: isIncome ? AppColors.income : AppColors.primary,
+      leading: Container(
+        width: 40, height: 40,
+        decoration: BoxDecoration(
+          color: amountColor.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(10),
+          border: Border.all(color: amountColor.withValues(alpha: 0.2)),
         ),
+        child: Icon(iconFromName(cat?.iconName), size: 18, color: amountColor),
       ),
       title: Text(cat?.name ?? '未知類別',
-          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500)),
+          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w500, color: AppColors.textPrimary)),
       subtitle: t.note != null && t.note!.isNotEmpty
           ? Text(t.note!, style: const TextStyle(fontSize: 12, color: AppColors.textGrey))
           : null,
       trailing: Row(mainAxisSize: MainAxisSize.min, children: [
         Text(amountText,
-            style: TextStyle(fontSize: 15, color: amountColor, fontWeight: FontWeight.w500)),
+            style: TextStyle(
+              fontSize: 15,
+              color: amountColor,
+              fontWeight: FontWeight.w600,
+              shadows: [Shadow(color: amountColor.withValues(alpha: 0.4), blurRadius: 8)],
+            )),
         const SizedBox(width: 4),
         PopupMenuButton<String>(
           icon: const Icon(Icons.more_vert, size: 16, color: AppColors.textGrey),
           itemBuilder: (_) => [
             const PopupMenuItem(value: 'edit', child: Text('編輯')),
-            const PopupMenuItem(value: 'delete', child: Text('刪除', style: TextStyle(color: Colors.red))),
+            PopupMenuItem(value: 'delete',
+                child: Text('刪除', style: TextStyle(color: AppColors.expense))),
           ],
           onSelected: (action) async {
             if (action == 'delete') {

@@ -48,60 +48,35 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
         : null;
     final fmt = NumberFormat('#,###');
     final isIncome = provider.type == 'income';
-    final activeColor = isIncome ? AppColors.income : AppColors.primary;
+    final activeColor = isIncome ? AppColors.income : AppColors.expense;
 
     return Scaffold(
-      backgroundColor: Colors.white,
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        backgroundColor: Colors.white,
+        backgroundColor: AppColors.background,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back),
+          icon: const Icon(Icons.arrow_back, color: AppColors.textGrey),
           onPressed: () => Navigator.pop(context),
         ),
-        title: Container(
-          decoration: BoxDecoration(
-            border: Border.all(color: activeColor, width: 1.5),
-            borderRadius: BorderRadius.circular(24),
+        title: Row(mainAxisSize: MainAxisSize.min, children: [
+          _TypeTab(
+            label: '支出',
+            isSelected: !isIncome,
+            color: AppColors.expense,
+            onTap: () => context.read<TransactionProvider>().setType('expense'),
           ),
-          child: Row(mainAxisSize: MainAxisSize.min, children: [
-            GestureDetector(
-              onTap: () => context.read<TransactionProvider>().setType('expense'),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                decoration: BoxDecoration(
-                  color: !isIncome ? AppColors.primary : Colors.transparent,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Text('支出',
-                    style: TextStyle(
-                      color: !isIncome ? Colors.white : AppColors.textDark.withValues(alpha: 0.5),
-                      fontWeight: FontWeight.bold,
-                    )),
-              ),
-            ),
-            GestureDetector(
-              onTap: () => context.read<TransactionProvider>().setType('income'),
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 200),
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
-                decoration: BoxDecoration(
-                  color: isIncome ? AppColors.income : Colors.transparent,
-                  borderRadius: BorderRadius.circular(24),
-                ),
-                child: Text('收入',
-                    style: TextStyle(
-                      color: isIncome ? Colors.white : AppColors.textDark.withValues(alpha: 0.5),
-                      fontWeight: FontWeight.bold,
-                    )),
-              ),
-            ),
-          ]),
-        ),
+          const SizedBox(width: 8),
+          _TypeTab(
+            label: '收入',
+            isSelected: isIncome,
+            color: AppColors.income,
+            onTap: () => context.read<TransactionProvider>().setType('income'),
+          ),
+        ]),
         actions: [
           IconButton(
-            icon: const Icon(Icons.settings_outlined),
+            icon: const Icon(Icons.settings_outlined, color: AppColors.textGrey),
             tooltip: '管理類別',
             onPressed: () async {
               await Navigator.push(context,
@@ -149,74 +124,82 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
           ),
           // 底部輸入面板
           Container(
-            decoration: const BoxDecoration(
-              color: Colors.white,
-              boxShadow: [BoxShadow(color: Colors.black12, blurRadius: 8, offset: Offset(0, -2))],
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              border: Border(top: BorderSide(color: AppColors.surfaceHigh.withValues(alpha: 0.8))),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // 金額列
+                // 金額顯示
                 Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 12, 16, 4),
-                  child: Row(children: [
-                    CircleAvatar(
-                      radius: 18,
-                      backgroundColor: activeColor.withValues(alpha: 0.15),
-                      child: Icon(iconFromName(selectedCat?.iconName), size: 16, color: activeColor),
-                    ),
-                    const SizedBox(width: 8),
-                    const Text('TWD', style: TextStyle(color: AppColors.textGrey, fontSize: 13)),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
+                  padding: const EdgeInsets.fromLTRB(20, 16, 20, 0),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text('TWD',
+                          style: TextStyle(color: AppColors.textGrey, fontSize: 11, letterSpacing: 2)),
+                      const SizedBox(height: 2),
+                      Text(
                         '\$${fmt.format(int.tryParse(provider.displayAmount) ?? 0)}',
-                        style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold, color: activeColor),
+                        style: TextStyle(
+                          fontSize: 36,
+                          fontWeight: FontWeight.bold,
+                          color: activeColor,
+                          shadows: [Shadow(color: activeColor.withValues(alpha: 0.5), blurRadius: 16)],
+                        ),
                       ),
-                    ),
-                  ]),
+                    ],
+                  ),
                 ),
                 // 備註欄位
                 Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  padding: const EdgeInsets.symmetric(horizontal: 20),
                   child: TextField(
                     controller: _noteCtrl,
                     onChanged: (v) => context.read<TransactionProvider>().setNote(v),
-                    decoration: const InputDecoration(
+                    style: const TextStyle(color: AppColors.textPrimary, fontSize: 13),
+                    decoration: InputDecoration(
                       hintText: '輸入備註（選填）',
-                      hintStyle: TextStyle(color: AppColors.textGrey, fontSize: 13),
+                      hintStyle: const TextStyle(color: AppColors.textGrey, fontSize: 13),
                       isDense: true,
-                      border: InputBorder.none,
+                      contentPadding: const EdgeInsets.symmetric(vertical: 6),
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: UnderlineInputBorder(
+                        borderSide: BorderSide(color: activeColor.withValues(alpha: 0.6), width: 1),
+                      ),
                     ),
-                    style: const TextStyle(fontSize: 13),
                     maxLines: 1,
                   ),
                 ),
                 // 快捷 Chip（顯示已選類別）
                 if (selectedCat != null)
                   Padding(
-                    padding: const EdgeInsets.only(left: 16, bottom: 4),
-                    child: Chip(
-                      label: Text(selectedCat.name,
-                          style: const TextStyle(color: Colors.white, fontSize: 12)),
-                      backgroundColor: activeColor,
-                      materialTapTargetSize: MaterialTapTargetSize.shrinkWrap,
-                      padding: EdgeInsets.zero,
+                    padding: const EdgeInsets.only(left: 20, top: 4, bottom: 4),
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: activeColor.withValues(alpha: 0.15),
+                        borderRadius: BorderRadius.circular(20),
+                        border: Border.all(color: activeColor.withValues(alpha: 0.4)),
+                      ),
+                      child: Text(selectedCat.name,
+                          style: TextStyle(color: activeColor, fontSize: 12)),
                     ),
                   ),
                 // 日期列
                 Container(
-                  margin: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                  margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                   padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 4),
                   decoration: BoxDecoration(
-                    border: Border.all(color: Colors.grey.shade200),
+                    border: Border.all(color: AppColors.surfaceHigh),
                     borderRadius: BorderRadius.circular(24),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       IconButton(
-                        icon: const Icon(Icons.arrow_left, size: 24),
+                        icon: const Icon(Icons.arrow_left, size: 24, color: AppColors.textGrey),
                         onPressed: () => context.read<TransactionProvider>().previousDay(),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -236,14 +219,18 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
                         },
                         child: Row(children: [
                           const Icon(Icons.calendar_today_outlined,
-                              size: 14, color: AppColors.textGrey),
+                              size: 13, color: AppColors.textGrey),
                           const SizedBox(width: 6),
                           Text(dateLabel,
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w500)),
+                              style: const TextStyle(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w500,
+                                color: AppColors.textPrimary,
+                              )),
                         ]),
                       ),
                       IconButton(
-                        icon: const Icon(Icons.arrow_right, size: 24),
+                        icon: const Icon(Icons.arrow_right, size: 24, color: AppColors.textGrey),
                         onPressed: () => context.read<TransactionProvider>().nextDay(),
                         padding: EdgeInsets.zero,
                         constraints: const BoxConstraints(minWidth: 36, minHeight: 36),
@@ -257,6 +244,48 @@ class _AddTransactionScreenState extends State<AddTransactionScreen> {
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+// ── 支出/收入切換 Tab ─────────────────────────────────────────
+class _TypeTab extends StatelessWidget {
+  final String label;
+  final bool isSelected;
+  final Color color;
+  final VoidCallback onTap;
+  const _TypeTab({
+    required this.label, required this.isSelected,
+    required this.color, required this.onTap,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          border: Border(
+            bottom: BorderSide(
+              color: isSelected ? color : Colors.transparent,
+              width: 2.5,
+            ),
+          ),
+        ),
+        child: Text(
+          label,
+          style: TextStyle(
+            color: isSelected ? color : AppColors.textGrey,
+            fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+            fontSize: 15,
+            shadows: isSelected
+                ? [Shadow(color: color.withValues(alpha: 0.5), blurRadius: 8)]
+                : null,
+          ),
+        ),
       ),
     );
   }
@@ -282,17 +311,27 @@ class _CategoryCell extends StatelessWidget {
         Container(
           width: 52, height: 52,
           decoration: BoxDecoration(
-            color: isSelected ? activeColor.withValues(alpha: 0.15) : Colors.grey.shade100,
+            color: isSelected
+                ? activeColor.withValues(alpha: 0.18)
+                : AppColors.surfaceHigh,
             borderRadius: BorderRadius.circular(14),
-            border: isSelected ? Border.all(color: activeColor, width: 1.5) : null,
+            border: isSelected
+                ? Border.all(color: activeColor, width: 1.5)
+                : isAdd
+                    ? Border.all(color: AppColors.accent.withValues(alpha: 0.5))
+                    : Border.all(color: Colors.white.withValues(alpha: 0.04)),
           ),
-          child: Icon(icon, color: isSelected ? activeColor : AppColors.textDark, size: 26),
+          child: Icon(
+            icon,
+            color: isSelected ? activeColor : (isAdd ? AppColors.accent : AppColors.textGrey),
+            size: 24,
+          ),
         ),
         const SizedBox(height: 4),
         Text(label,
             style: TextStyle(
               fontSize: 11,
-              color: isSelected ? activeColor : AppColors.textDark,
+              color: isSelected ? activeColor : AppColors.textGrey,
               fontWeight: isSelected ? FontWeight.w600 : FontWeight.normal,
             ),
             overflow: TextOverflow.ellipsis),
@@ -312,8 +351,8 @@ class _NumericKeyboard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      color: AppColors.primary,
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 16),
+      color: AppColors.background,
+      padding: const EdgeInsets.fromLTRB(12, 12, 12, 20),
       child: Row(crossAxisAlignment: CrossAxisAlignment.start, children: [
         Expanded(
           child: Column(children: [
@@ -327,7 +366,10 @@ class _NumericKeyboard extends StatelessWidget {
           ]),
         ),
         const SizedBox(width: _gap),
-        SizedBox(width: 64, child: _OkButton(height: _keyH * 2 + _gap, isEditing: isEditing, editing: editing)),
+        SizedBox(
+          width: 64,
+          child: _OkButton(height: _keyH * 2 + _gap, isEditing: isEditing, editing: editing),
+        ),
       ]),
     );
   }
@@ -363,7 +405,7 @@ class _OkButton extends StatelessWidget {
         final err = await provider.saveTransaction(editing: editing);
         if (err != null && context.mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(err), backgroundColor: Colors.redAccent),
+            SnackBar(content: Text(err)),
           );
         } else if (context.mounted) {
           Navigator.pop(context);
@@ -372,15 +414,22 @@ class _OkButton extends StatelessWidget {
       child: Container(
         height: height,
         decoration: BoxDecoration(
-          color: AppColors.okButton,
-          borderRadius: BorderRadius.circular(20),
+          color: AppColors.accent,
+          borderRadius: BorderRadius.circular(14),
           boxShadow: [
-            BoxShadow(color: AppColors.okButton.withValues(alpha: 0.4), blurRadius: 8, offset: const Offset(0, 4)),
+            BoxShadow(
+              color: AppColors.accent.withValues(alpha: 0.5),
+              blurRadius: 20,
+              offset: const Offset(0, 4),
+            ),
           ],
         ),
         alignment: Alignment.center,
         child: Text(isEditing ? '更新' : 'OK',
-            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white, letterSpacing: 1.5)),
+            style: const TextStyle(
+              fontSize: 20, fontWeight: FontWeight.bold,
+              color: Colors.white, letterSpacing: 1.5,
+            )),
       ),
     );
   }
@@ -396,8 +445,7 @@ class _KeyBtn extends StatelessWidget {
     if (label.isEmpty) return const SizedBox(height: 52);
     final isAc = label == 'AC';
     final isBack = label == '←';
-    final bgColor = (isAc || isBack) ? AppColors.acButton : Colors.white;
-    final fgColor = (isAc || isBack) ? Colors.white : AppColors.textDark;
+    final isSpecialKey = isAc || isBack;
 
     return GestureDetector(
       onTap: () {
@@ -415,14 +463,20 @@ class _KeyBtn extends StatelessWidget {
       child: Container(
         height: 52,
         decoration: BoxDecoration(
-          color: bgColor,
-          shape: BoxShape.circle,
-          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.08), blurRadius: 4, offset: const Offset(0, 2))],
+          color: AppColors.surfaceHigh,
+          borderRadius: BorderRadius.circular(12),
         ),
         alignment: Alignment.center,
         child: isBack
-            ? Icon(Icons.backspace_outlined, color: fgColor, size: 20)
-            : Text(label, style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: fgColor)),
+            ? const Icon(Icons.backspace_outlined, color: AppColors.income, size: 20)
+            : Text(
+                label,
+                style: TextStyle(
+                  fontSize: isAc ? 15 : 18,
+                  fontWeight: FontWeight.w600,
+                  color: isSpecialKey ? AppColors.income : AppColors.textPrimary,
+                ),
+              ),
       ),
     );
   }
