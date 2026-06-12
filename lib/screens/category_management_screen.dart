@@ -14,12 +14,12 @@ class CategoryManagementScreen extends StatelessWidget {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
+        backgroundColor: AppColors.background,
         title: const Text('管理類別'),
-        backgroundColor: Colors.white,
         elevation: 0,
         actions: [
           IconButton(
-            icon: const Icon(Icons.add),
+            icon: const Icon(Icons.add, color: AppColors.accent),
             onPressed: () => _showAddDialog(context, provider),
           ),
         ],
@@ -37,20 +37,25 @@ class CategoryManagementScreen extends StatelessWidget {
           final cat = provider.categories[i];
           return ListTile(
             key: ValueKey(cat.id),
-            leading: CircleAvatar(
-              backgroundColor: AppColors.primary.withValues(alpha: 0.15),
-              child: Icon(iconFromName(cat.iconName), color: AppColors.primary, size: 20),
+            leading: Container(
+              width: 40, height: 40,
+              decoration: BoxDecoration(
+                color: AppColors.expense.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(color: AppColors.expense.withValues(alpha: 0.2)),
+              ),
+              child: Icon(iconFromName(cat.iconName), color: AppColors.expense, size: 20),
             ),
-            title: Text(cat.name),
+            title: Text(cat.name, style: const TextStyle(color: AppColors.textPrimary)),
             trailing: Row(mainAxisSize: MainAxisSize.min, children: [
               const Icon(Icons.drag_handle, color: AppColors.textGrey),
               IconButton(
-                icon: const Icon(Icons.delete_outline, color: Colors.redAccent, size: 20),
+                icon: Icon(Icons.delete_outline, color: AppColors.expense.withValues(alpha: 0.8), size: 20),
                 onPressed: () async {
                   final err = await context.read<TransactionProvider>().deleteCategoryById(cat.id!);
                   if (err != null && context.mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(err), backgroundColor: Colors.redAccent),
+                      SnackBar(content: Text(err)),
                     );
                   }
                 },
@@ -70,12 +75,14 @@ class CategoryManagementScreen extends StatelessWidget {
       context: context,
       builder: (ctx) => StatefulBuilder(
         builder: (ctx, setState) => AlertDialog(
-          title: const Text('新增類別'),
+          backgroundColor: AppColors.surface,
+          title: const Text('新增類別', style: TextStyle(color: AppColors.textPrimary)),
           content: SizedBox(
             width: double.maxFinite,
             child: Column(mainAxisSize: MainAxisSize.min, children: [
               TextField(
                 controller: nameCtrl,
+                style: const TextStyle(color: AppColors.textPrimary),
                 decoration: const InputDecoration(labelText: '類別名稱'),
                 autofocus: true,
               ),
@@ -94,13 +101,17 @@ class CategoryManagementScreen extends StatelessWidget {
                       onTap: () => setState(() => selectedIcon = e.key),
                       child: Container(
                         decoration: BoxDecoration(
-                          color: isSelected ? AppColors.primary.withValues(alpha: 0.15) : Colors.grey.shade100,
+                          color: isSelected
+                              ? AppColors.expense.withValues(alpha: 0.18)
+                              : AppColors.surfaceHigh,
                           borderRadius: BorderRadius.circular(10),
-                          border: isSelected ? Border.all(color: AppColors.primary, width: 1.5) : null,
+                          border: isSelected
+                              ? Border.all(color: AppColors.expense, width: 1.5)
+                              : Border.all(color: Colors.white.withValues(alpha: 0.04)),
                         ),
                         child: Icon(e.value,
                             size: 24,
-                            color: isSelected ? AppColors.primary : AppColors.textDark),
+                            color: isSelected ? AppColors.expense : AppColors.textGrey),
                       ),
                     );
                   }).toList(),
@@ -109,21 +120,32 @@ class CategoryManagementScreen extends StatelessWidget {
             ]),
           ),
           actions: [
-            TextButton(onPressed: () => Navigator.pop(ctx), child: const Text('取消')),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-              onPressed: () async {
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('取消', style: TextStyle(color: AppColors.textGrey)),
+            ),
+            GestureDetector(
+              onTap: () async {
                 final err = await provider.addCategory(nameCtrl.text, selectedIcon);
                 if (err != null && ctx.mounted) {
                   ScaffoldMessenger.of(ctx).showSnackBar(
-                    SnackBar(content: Text(err), backgroundColor: Colors.redAccent),
+                    SnackBar(content: Text(err)),
                   );
                 } else if (ctx.mounted) {
                   Navigator.pop(ctx);
                 }
               },
-              child: const Text('新增', style: TextStyle(color: Colors.white)),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                decoration: BoxDecoration(
+                  color: AppColors.accent,
+                  borderRadius: BorderRadius.circular(8),
+                  boxShadow: [BoxShadow(color: AppColors.accent.withValues(alpha: 0.4), blurRadius: 10)],
+                ),
+                child: const Text('新增', style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold)),
+              ),
             ),
+            const SizedBox(width: 4),
           ],
         ),
       ),
